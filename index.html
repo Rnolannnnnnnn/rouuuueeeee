@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Roue des Mots Rigolos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffd1dc;
+            font-family: 'Nunito', sans-serif;
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .wheel {
+            width: 300px;
+            height: 100px;
+            display: flex;
+            justify-content: space-around;
+            overflow: hidden;
+            border: 5px solid #ff9bb3;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ff577f;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .reel {
+            width: 90px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .symbol {
+            width: 70px;
+            height: 70px;
+            margin: 5px 0;
+            background-size: cover;
+            font-size: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #ff577f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:disabled {
+            background-color: #ccc;
+        }
+
+        .tokens,
+        .words {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .popup-content {
+            background: #ff577f;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .popup button {
+            margin-top: 10px;
+            background-color: white;
+            color: #ff577f;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wheel">
+        <div class="reel" id="reel1"></div>
+        <div class="reel" id="reel2"></div>
+        <div class="reel" id="reel3"></div>
+    </div>
+    <button class="button" id="spinButton">Lancer la Roue</button>
+    <div class="tokens">Jetons : <span id="tokens">20</span></div>
+    <div class="words">Mots Collectionnés : <span id="words"></span></div>
+
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2>Règles du Jeu</h2>
+            <p>Bienvenue sur la Roue des Mots Rigolos !</p>
+            <p>Tu commences avec 20 jetons. Chaque lancer coûte 1 jeton.</p>
+            <p>Si trois cadeaux s'alignent, tu as un mot rigolo.</p>
+            <button onclick="closePopup()">Jouer</button>
+        </div>
+    </div>
+
+    <script>
+        const symbols = [
+            { name: 'banane', img: '🦐' },
+            { name: 'nounours', img: '🍌' }
+            { name: 'nounours', img: '🫐' },
+            { name: 'cadeau', img: '🎁' },
+            { name: 'cadeau', img: '🎁' },
+            { name: 'cadeau', img: '🎁' } // Ajoute plus de cadeaux pour augmenter la probabilité
+        ];
+        const words = ["hurluberlu", "zigomar", "froufrou", "farfelu", "loufoque", "rigolo", "abracadabra", "croquignolet", "saperlipopette", "chamallow"];
+        let collectedWords = [];
+        let tokens = 20;
+        let spinning = false;
+
+        document.getElementById("spinButton").addEventListener("click", spinWheel);
+        document.getElementById("tokens").innerText = tokens;
+
+        function spinWheel() {
+            if (tokens > 0 && !spinning) {
+                tokens--;
+                document.getElementById("tokens").innerText = tokens;
+                spinning = true;
+                let results = [];
+
+                for (let i = 1; i <= 3; i++) {
+                    const reel = document.getElementById(`reel${i}`);
+                    reel.innerHTML = '';
+
+                    const spinInterval = setInterval(() => {
+                        reel.innerHTML = '';
+                        for (let j = 0; j < 4; j++) {
+                            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                            const symbolDiv = document.createElement('div');
+                            symbolDiv.className = 'symbol';
+                            symbolDiv.textContent = symbol.img;
+                            reel.appendChild(symbolDiv);
+                        }
+                    }, 100);
+
+                    setTimeout(() => {
+                        clearInterval(spinInterval);
+                        const finalSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                        results.push(finalSymbol.name);
+                        reel.innerHTML = `<div class="symbol">${finalSymbol.img}</div>`;
+                        if (i === 3) {
+                            checkResults(results);
+                        }
+                    }, 2000 + (i * 1000));
+                }
+            }
+        }
+
+        function checkResults(results) {
+            if (results.every(result => result === 'cadeau')) {
+                if (Math.random() < 1) {
+                    const newWord = words[Math.floor(Math.random() * words.length)];
+                    if (!collectedWords.includes(newWord)) {
+                        collectedWords.push(newWord);
+                        document.getElementById("words").innerText = collectedWords.join(", ");
+                    }
+                    alert(`Félicitations ! Vous avez trouvé le mot : ${newWord}`);
+                }
+            }
+            spinning = false;
+        }
+
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+        }
+    </script>
+
+</body>
+
+</html>
